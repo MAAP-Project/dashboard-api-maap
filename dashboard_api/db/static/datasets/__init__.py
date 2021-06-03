@@ -32,6 +32,9 @@ class DatasetManager(object):
         }
 
     def _load_metadata_from_file(self):
+        if os.environ.get('ENV') == 'local':
+           return json.loads(open("example-dataset-metadata.json").read())
+
         try:
             return json.loads(
                 s3_get(bucket=BUCKET, key=DATASET_METADATA_FILENAME)

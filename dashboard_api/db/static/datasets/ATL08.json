@@ -1,0 +1,23 @@
+{
+    "id": "ATL08",
+    "name": "ATL08 ICESat-2",
+    "type": "inference-timeseries",
+    "is_periodic": false,
+    "time_unit": "day",
+    "source": {
+        "type": "geojson",
+        "tiles": [
+            "https://enreke9wo4.execute-api.us-west-2.amazonaws.com/collections/Global/items?f=json&bbox=50,80,51,81&limit=100"
+        ]
+    },
+    "enabled": false,
+    "swatch": {
+        "color": "#C0C0C0",
+        "name": "Grey"
+    },
+    "info": "ATL08 data",
+    "domain": [
+        "2018-01-01T00:00:00Z",
+        "2018-01-17T00:00:00Z"
+    ]    
+}

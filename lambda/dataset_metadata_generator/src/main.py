@@ -16,7 +16,7 @@ DATASETS_JSON_FILEPATH = os.path.join(BASE_PATH, "dashboard_api/db/static/datase
 SITES_JSON_FILEPATH = os.path.join(BASE_PATH, "dashboard_api/db/static/sites")
 
 DATASET_METADATA_FILENAME = os.environ.get("DATASET_METADATA_FILENAME", config.get('DATASET_METADATA_FILENAME'))
-STAC_API_URL = config['STAC_API_URL']
+STAC_API_URL = config.get('STAC_API_URL', None)
 
 s3 = boto3.resource("s3")
 bucket = s3.Bucket(os.environ.get("DATA_BUCKET_NAME", config.get('BUCKET')))
@@ -47,16 +47,25 @@ def handler(event, context):
     # TODO: defined TypedDicts for these!
     listed_datasets = config['DATASETS']['STATIC']
     datasets = _gather_json_data(DATASETS_JSON_FILEPATH, filter=listed_datasets)
-    if STAC_API_URL:
+    if STAC_API_URL != None:
         stac_datasets = _fetch_stac_items()
         datasets.extend(stac_datasets)
     sites = _gather_json_data(SITES_JSON_FILEPATH)
 
     result = _gather_datasets_metadata(datasets, sites)
-    # TODO: Protect from running _not_ in "production" deployment
-    bucket.put_object(
-        Body=json.dumps(result), Key=DATASET_METADATA_FILENAME, ContentType="application/json",
-    )
+
+    if os.environ.get('ENV') == 'local':
+        local_file = 'example-dataset-metadata.json'
+        with open(local_file, 'w') as metadata_file:
+            metadata_file.write(json.dumps(result))
+        print(f'Wrote data to local file {local_file}.')
+
+    if os.environ.get('ENV') != "production":
+        print("Not putting to S3 because not in production")
+    else:
+        bucket.put_object(
+            Body=json.dumps(result), Key=DATASET_METADATA_FILENAME, ContentType="application/json",
+        )
     return result
 
 def _fetch_stac_items():
