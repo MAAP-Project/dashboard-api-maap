@@ -34,7 +34,6 @@ pyenv install
 pip install -e .
 # Create or add buckets for your data files
 export AWS_PROFILE=CHANGEME
-python -m lambda.dataset_metadata_generator.src.main
 # Run the app
 uvicorn dashboard_api.main:app --reload
 ```
@@ -83,13 +82,6 @@ Metadata is used to list serve data via `/datasets`, `/tiles`, and `/timelapse` 
 
 1. Static JSON files, stored in `dashboard_api/db/static/datasets/`
 2. STAC API, defined in `stack/config.yml`
-
-In `lambda/dataset_metadata_generator` is code for a lambda to asynchronously generate metadata json files.
-
-This lambda generates metadata in 2 ways:
-
-1. Reads through the s3 bucket to generate a file that contains the datasets for each given spotlight option (_all, global, tk, ny, sf, la, be, du, gh) and their respective domain for each spotlight.
-2. If `STAC_API_URL` is configured in `stack/config.yml`, fetches collections from a STAC catalogue and generates a metadata object for each collection.
 
 ## Cloud Deployment
 

@@ -32,9 +32,5 @@ DATASET_METADATA_FILENAME = os.environ.get(
     "DATASET_METADATA_FILENAME", config_object["DATASET_METADATA_FILENAME"]
 )
 
-DATASET_METADATA_GENERATOR_FUNCTION_NAME = os.environ.get(
-    "DATASET_METADATA_GENERATOR_FUNCTION_NAME", "dev-dataset-metadata-generator"
-)
-
 DT_FORMAT = "%Y-%m-%d"
 MT_FORMAT = "%Y%m"

@@ -11,8 +11,6 @@ from moto import mock_s3
 from dashboard_api.core.config import BUCKET
 
 DATASET_METADATA_FILENAME = "dev-dataset-metadata.json"
-DATASET_METADATA_GENERATOR_FUNCTION_NAME = "dev-dataset-metadata-generator"
-
 
 @mock_s3
 def _setup_s3(empty=False):
@@ -66,10 +64,6 @@ def test_metadata_file_generation_triggered_if_not_found(
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 pass
-
-        mocked_invoke_lambda.assert_called_with(
-            lambda_function_name=DATASET_METADATA_GENERATOR_FUNCTION_NAME
-        )
 
 
 @mock_s3
