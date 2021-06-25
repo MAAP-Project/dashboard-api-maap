@@ -148,6 +148,7 @@ class Site(BaseModel):
 
     id: str
     label: str
+    summary: str
     center: List[float]
     polygon: Optional[Polygon] = None
     bounding_box: Optional[List[float]] = None
