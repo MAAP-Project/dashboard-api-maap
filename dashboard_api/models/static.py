@@ -3,9 +3,7 @@
 from typing import Any, List, Optional, Union
 
 from geojson_pydantic.geometries import Polygon
-from pydantic import BaseModel  # , validator
-
-# from pydantic.color import Color
+from pydantic import BaseModel, constr
 
 
 def to_camel(snake_str: str) -> str:
@@ -134,6 +132,16 @@ class Datasets(BaseModel):
 
     datasets: List[DatasetExternal]
 
+class Link(BaseModel):
+    """
+    Link for hypermedia
+    """
+
+    href: constr(min_length=1)
+    rel: constr(min_length=1)
+    type: Optional[str]
+    title: Optional[str]
+
 
 class Site(BaseModel):
     """Site Model."""
@@ -144,6 +152,7 @@ class Site(BaseModel):
     polygon: Optional[Polygon] = None
     bounding_box: Optional[List[float]] = None
     indicators: List[Any] = []
+    links: List[Link] = []
 
 
 class Sites(BaseModel):

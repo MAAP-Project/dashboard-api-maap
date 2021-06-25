@@ -2,53 +2,59 @@
 import os
 from enum import Enum
 from typing import List
+import json
 
-from dashboard_api.db.static.errors import InvalidIdentifier
-from dashboard_api.db.utils import get_indicators, indicator_exists, indicator_folders
-from dashboard_api.models.static import Site, Sites
+import botocore
 
-data_dir = os.path.join(os.path.dirname(__file__))
-
+from dashboard_api.db.utils import s3_get
+from dashboard_api.models.static import Sites, Link
+from dashboard_api.core.config import (SITE_METADATA_FILENAME, BUCKET)
 
 class SiteManager(object):
     """Default Site holder."""
 
     def __init__(self):
-        """Load all datasets in a dict."""
-        site_ids = [
-            os.path.splitext(f)[0] for f in os.listdir(data_dir) if f.endswith(".json")
-        ]
+        """Load all sites."""
+        pass
 
-        self._data = {
-            site: Site.parse_file(os.path.join(data_dir, f"{site}.json"))
-            for site in site_ids
-        }
-
-    def get(self, identifier: str) -> Site:
-        """Fetch a Site."""
-        try:
-            site = self._data[identifier]
-            site.indicators = get_indicators(identifier)
-            return site
-        except KeyError:
-            raise InvalidIdentifier(f"Invalid identifier: {identifier}")
-
-    def get_all(self) -> Sites:
+    def get_all(self, api_url: str) -> Sites:
         """Fetch all Sites."""
-        all_sites = [site.dict() for site in self._data.values()]
-        indicators = indicator_folders()
-        # add indicator ids
-        for site in all_sites:
-            site["indicators"] = [
-                ind for ind in indicators if indicator_exists(site["id"], ind)
-            ]
-        return Sites(sites=all_sites)
+        if os.environ.get('ENV') == 'local':
+            # Useful for local testing
+            example_sites = "example-site-metadata.json"
+            print(f'Loading {example_sites}')
+            s3_datasets = json.loads(open(example_sites).read())
+        try:
+            print(f"{BUCKET}/{SITE_METADATA_FILENAME}")
+            s3_datasets = json.loads(
+                s3_get(bucket=BUCKET, key=SITE_METADATA_FILENAME)
+            )
+            print("sites json successfully loaded from S3")
 
-    def list(self) -> List[str]:
-        """List all sites"""
-        return list(self._data.keys())
+            # indicators = indicator_folders()
+            # # add indicator ids
+            # for site in all_sites:
+            #     site["indicators"] = [
+            #         ind for ind in indicators if indicator_exists(site["id"], ind)
+            #
+
+            sites = Sites(**s3_datasets)
+
+            for site in sites.sites:
+                site.links.append(Link(
+                    href = f"{api_url}/sites/{site.id}",
+                    rel = "self",
+                    type = "application/json",
+                    title = "Self"
+                ))
+            return sites
+
+        except botocore.errorfactory.ClientError as e:
+            # todo
+            if e.response["Error"]["Code"] in ["ResourceNotFoundException", "NoSuchKey"]:
+                return json.loads(open("example-site-metadata.json").read())
+            else:
+                raise e
 
 
 sites = SiteManager()
-
-SiteNames = Enum("SiteNames", [(site, site) for site in sites.list()])  # type: ignore
