@@ -37,7 +37,7 @@ def get_sites(
         sites = sites_manager.get_all(api_url=f"{scheme}://{host}")
 
         if cache_client and sites:
-            cache_client.set_dataset_cache(sites_hash, sites)
+            cache_client.set_dataset_cache(sites_hash, sites, 60)
 
     return sites
 
@@ -70,7 +70,7 @@ def get_site(
             raise InvalidIdentifier()
 
         if cache_client and site:
-            cache_client.set_dataset_cache(site_hash, site)
+            cache_client.set_dataset_cache(site_hash, site, 60)
 
         return site
     except InvalidIdentifier:
