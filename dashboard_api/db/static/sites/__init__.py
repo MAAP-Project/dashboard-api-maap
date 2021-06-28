@@ -45,26 +45,22 @@ class SiteManager(object):
             )
             print("sites json successfully loaded from S3")
 
-            # indicators = indicator_folders()
-            # # add indicator ids
-            # for site in all_sites:
-            #     site["indicators"] = [
-            #         ind for ind in indicators if indicator_exists(site["id"], ind)
-            #
-
             sites = Sites(**s3_datasets)
+
+            indicators = indicator_folders()
 
             for site in sites.sites:
                 site.links.append(Link(
-                    href = f"{api_url}/sites/{site.id}",
-                    rel = "self",
-                    type = "application/json",
-                    title = "Self"
+                    href=f"{api_url}/sites/{site.id}",
+                    rel="self",
+                    type="application/json",
+                    title="Self"
                 ))
+                site.indicators = [ind for ind in indicators if indicator_exists(site.id, ind)]
+
             return sites
 
         except botocore.errorfactory.ClientError as e:
-            # todo
             if e.response["Error"]["Code"] in ["ResourceNotFoundException", "NoSuchKey"]:
                 return json.loads(open("example-site-metadata.json").read())
             else:
