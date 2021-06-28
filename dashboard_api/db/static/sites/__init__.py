@@ -9,6 +9,9 @@ import botocore
 from dashboard_api.db.utils import s3_get
 from dashboard_api.models.static import Sites, Link
 from dashboard_api.core.config import (SITE_METADATA_FILENAME, BUCKET)
+from dashboard_api.db.static.errors import InvalidIdentifier
+from dashboard_api.db.utils import get_indicators, indicator_exists, indicator_folders
+from dashboard_api.models.static import Site, Sites
 
 class SiteManager(object):
     """Default Site holder."""
@@ -16,6 +19,17 @@ class SiteManager(object):
     def __init__(self):
         """Load all sites."""
         pass
+
+    # todo: needs caching
+    def get(self, identifier: str, api_url: str) -> Site:
+        """Fetch a Site."""
+        try:
+            sites = self.get_all(api_url)
+            site = next(filter(lambda x: x.id == identifier, sites.sites), None)
+            site.indicators = get_indicators(identifier)
+            return site
+        except KeyError:
+            raise InvalidIdentifier(f"Invalid identifier: {identifier}")
 
     def get_all(self, api_url: str) -> Sites:
         """Fetch all Sites."""
