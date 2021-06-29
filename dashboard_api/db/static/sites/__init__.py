@@ -4,6 +4,7 @@ import json
 
 import botocore
 from cachetools import TTLCache
+from typing import Optional
 
 from dashboard_api.db.utils import s3_get
 from dashboard_api.models.static import Sites, Link
@@ -17,7 +18,7 @@ class SiteManager(object):
     def __init__(self):
         self.sites_cache = TTLCache(1, 60)
 
-    def get(self, identifier: str, api_url: str) -> Site:
+    def get(self, identifier: str, api_url: str) -> Optional[Site]:
         """Fetch a Site."""
         sites = self.get_all(api_url)
         return next(filter(lambda x: x.id == identifier, sites.sites), None)

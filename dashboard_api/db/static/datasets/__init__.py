@@ -80,10 +80,9 @@ class DatasetManager(object):
             return Datasets(datasets=[dataset.dict() for dataset in global_datasets])
 
         # Verify that the requested spotlight exists
-        try:
-            site = sites.get(spotlight_id, api_url)
-        except InvalidIdentifier:
-            raise
+        site = sites.get(spotlight_id, api_url)
+        if not site:
+            raise InvalidIdentifier()
 
         spotlight_metadata = self._load_metadata_from_file().get(site.id)
         if spotlight_metadata:
