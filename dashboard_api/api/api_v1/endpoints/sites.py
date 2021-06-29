@@ -3,7 +3,6 @@
 from dashboard_api.api import utils
 from dashboard_api.db.static.sites import sites as sites_manager
 from dashboard_api.db.memcache import CacheLayer
-from dashboard_api.db.static.errors import InvalidIdentifier
 from dashboard_api.core import config
 from dashboard_api.models.static import Site, Sites
 
@@ -54,26 +53,31 @@ def get_site(
     cache_client: CacheLayer = Depends(utils.get_cache),
 ):
     """Return site info."""
-    try:
-        site_hash = utils.get_hash(site_id=site_id)
-        site = None
+    site_hash = utils.get_hash(site_id=site_id)
+    site = None
 
-        if cache_client:
-            site = cache_client.get_dataset_from_cache(site_hash)
-        if site:
-            response.headers["X-Cache"] = "HIT"
-        else:
-            sites = get_sites(request, response, cache_client)
-            site = next(filter(lambda x: x.id == site_id, sites.sites), None)
+    if cache_client:
+        site = cache_client.get_dataset_from_cache(site_hash)
 
-        if not site:
-            raise InvalidIdentifier()
-
+    if site:
+        response.headers["X-Cache"] = "HIT"
+    else:
+        site = sites_manager.get(site_id, _api_url(request))
         if cache_client and site:
             cache_client.set_dataset_cache(site_hash, site, 60)
 
-        return site
-    except InvalidIdentifier:
+    if not site:
         raise HTTPException(
             status_code=404, detail=f"Non-existant site identifier: {site_id}"
         )
+
+    return site
+    
+
+def _api_url(request: Request) -> str:
+    scheme = request.url.scheme
+    host = request.headers["host"]
+    if config.API_VERSION_STR:
+        host += config.API_VERSION_STR
+
+    return f"{scheme}://{host}"
