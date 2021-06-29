@@ -1,17 +1,15 @@
 """ dashboard_api static sites """
 import os
-from typing import Tuple
 import json
 
 import botocore
+from cachetools import TTLCache
 
 from dashboard_api.db.utils import s3_get
 from dashboard_api.models.static import Sites, Link
 from dashboard_api.core.config import (SITE_METADATA_FILENAME, BUCKET)
-from dashboard_api.db.static.errors import InvalidIdentifier
 from dashboard_api.db.utils import indicator_exists, indicator_folders
 from dashboard_api.models.static import Site, Sites
-from cachetools import TTLCache
 
 class SiteManager(object):
     """Default Site holder."""
